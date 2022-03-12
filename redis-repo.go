@@ -41,10 +41,23 @@ func LsRefs(repoName string) ([]string, error) {
 		refObjs[refName] = refCmd.Val()
 	}
 	for _, refObj := range refObjs {
-		if _, error := resolveObjId(refObjs, refObj); error != nil {
+		if obj_id, error := resolveObjId(refObjs, refObj); error != nil {
 			return nil, error
+		} else {
+			refObj["obj-id"] = obj_id
 		}
 	}
+	var refs = make([]string, len(refObjs))
+	var i = 0
+	for refName, refObj := range refObjs {
+		var ref = refObj["obj-id"] + " " + refName
+		if symrefTarget, ok := refObj["symref-target"]; ok {
+			ref += " symref-target:" + symrefTarget
+		}
+		refs[i] = ref
+		i++
+	}
+	return refs, nil
 }
 
 func resolveObjId(refObjs map[string]map[string]string, refObj map[string]string) (string, error) {
